@@ -1,0 +1,407 @@
+/* Tuntematon — shared stylesheet for all pages.
+   Two typefaces only, by design: Press Start 2P for headings/module
+   titles, PT Mono for body copy. See README.md for rationale. */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=PT+Mono&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'PT Mono', monospace;
+  min-height: 100vh;
+}
+
+/* ---------- Shared page chrome (About/Manifesto/Exhibitions/Blog/Shop/Contact/Legal/Works) ---------- */
+
+.back {
+  display: inline-block;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+  padding: 24px;
+}
+.back:hover { opacity: 0.6; }
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 24px 120px;
+}
+
+h1 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 36px;
+  line-height: 44px;
+  margin-bottom: 24px;
+  word-break: break-word;
+}
+
+/* Grid-based pages (Works, Shop) skip <main>'s padding, so their
+   heading needs its own horizontal padding to line up with the grid. */
+h1.grid-page-title { padding: 0 24px; }
+
+h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  line-height: 26px;
+  margin-top: 56px;
+  margin-bottom: 20px;
+}
+
+.body-text {
+  font-family: 'PT Mono', monospace;
+  font-size: 16px;
+  line-height: 16px;
+}
+.body-text p { margin-bottom: 32px; }
+
+.list-item {
+  font-family: 'PT Mono', monospace;
+  font-size: 16px;
+  line-height: 16px;
+  margin-bottom: 18px;
+  display: flex;
+  gap: 16px;
+}
+.list-item .year { min-width: 48px; flex-shrink: 0; }
+
+.placeholder-note {
+  font-family: 'PT Mono', monospace;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px dashed;
+  padding: 14px;
+  margin-bottom: 24px;
+}
+
+/* Light-background pages (Manifesto, Exhibitions, Works, Shop, Contact) */
+body.theme-light {
+  background: #F5F3EF;
+  color: #0F0F0F;
+}
+body.theme-light .back,
+body.theme-light .body-text a,
+body.theme-light .email a { color: #0F0F0F; }
+body.theme-light .list-item .year,
+body.theme-light .entry .place { color: #5a5650; }
+body.theme-light .placeholder-note { color: #a8a49c; border-color: #b8b4ac; }
+body.theme-light .entry { border-bottom: 1px solid #d8d4cc; }
+
+/* Dark-background pages (About, Blog, Legal) */
+body.theme-dark {
+  background: #0F0F0F;
+  color: #F5F3EF;
+}
+body.theme-dark .back,
+body.theme-dark .body-text a { color: #F5F3EF; }
+body.theme-dark .list-item .year { color: #8a8a86; }
+body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
+
+/* ---------- Exhibitions ---------- */
+.entry {
+  font-family: 'PT Mono', monospace;
+  font-size: 16px;
+  line-height: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+}
+.entry .title { font-weight: bold; }
+
+/* ---------- Contact ---------- */
+.email {
+  font-family: 'PT Mono', monospace;
+  font-size: 20px;
+  line-height: 28px;
+  word-break: break-all;
+}
+.email a:hover { opacity: 0.6; }
+
+/* ---------- Blog ---------- */
+.channel-cta {
+  display: inline-block;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  line-height: 24px;
+  color: inherit;
+  border: 1px solid currentColor;
+  padding: 14px 20px;
+  text-decoration: none;
+}
+.channel-cta:hover { opacity: 0.6; }
+
+/* ---------- Works filter bar ---------- */
+.filters {
+  padding: 0 24px;
+  margin-bottom: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.filter-btn {
+  font-family: 'PT Mono', monospace;
+  font-size: 13px;
+  background: none;
+  border: 1px solid #0F0F0F;
+  color: #0F0F0F;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.filter-btn.active { background: #0F0F0F; color: #F5F3EF; }
+
+/* ---------- Shop grid ---------- */
+.price-tag {
+  font-family: 'PT Mono', monospace;
+  font-size: 14px;
+  align-self: flex-start;
+}
+.shop-intro { margin: 0 24px 32px; }
+.shop-cell {
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* =========================================================
+   Home / Works module grid — the site's signature interaction.
+   Modules sit edge-to-edge, no gaps. Fixed 240x240 from 480px
+   viewport width up; below that, forced 2 columns (module =
+   half the screen width) so mobile never collapses to 1 column.
+   ========================================================= */
+
+#home-grid, #works-grid, #shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 240px);
+  grid-auto-rows: 240px;
+  gap: 0;
+}
+@media (max-width: 480px) {
+  #home-grid, #works-grid, #shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: unset;
+  }
+  .cell { width: auto; height: auto; aspect-ratio: 1; }
+}
+
+.cell {
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-right: 20px;
+  cursor: pointer;
+  overflow: hidden;
+  word-break: break-all;
+  hyphens: none;
+  user-select: none;
+  background-size: cover;
+  background-position: center;
+}
+.cell:hover { filter: brightness(1.06); }
+
+/* Puzzle drag prototype (js/puzzle.js) needs to own touch gestures on
+   these cells instead of the browser's default scroll/zoom handling —
+   scoped to Home only, where the prototype currently lives. */
+#home-grid .cell { touch-action: none; }
+
+/* Puzzle drag prototype (js/puzzle.js) — Home grid only for now */
+.cell.puzzle-dragging {
+  z-index: 20;
+  cursor: grabbing;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  transition: none;
+}
+.cell.puzzle-drop-target {
+  box-shadow: inset 0 0 0 999px rgba(120,120,120,0.55);
+}
+/* Home-only: cells fade in on (re)shuffle */
+#home-grid .cell { opacity: 0; transition: opacity 0.22s ease; }
+#home-grid .cell.show { opacity: 1; }
+
+.px-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 24px;
+  line-height: 24px;
+  width: 100%;
+}
+/* Works archive uses a smaller title (denser browsing grid) */
+#works-grid .px-title { font-size: 20px; line-height: 24px; }
+
+#toolbar {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 50;
+}
+#toolbar button {
+  background: #F5F3EF;
+  color: #0F0F0F;
+  border: none;
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ---------- Work pop-up (the work's entire presentation — no separate page) ---------- */
+
+#overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,10,0.82);
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+#overlay.open { display: block; opacity: 1; }
+#overlay-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 24px;
+  cursor: pointer;
+}
+#overlay-card {
+  background: #F5F3EF;
+  color: #0F0F0F;
+  max-width: 480px;
+  width: 100%;
+  padding: 28px;
+  border-radius: 2px;
+  cursor: default;
+}
+
+.photo-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+#overlay-card .ov-photo {
+  flex: 1 1 auto;
+  aspect-ratio: 1;
+  cursor: zoom-in;
+  background-size: cover;
+  background-position: center;
+}
+.gallery-nav {
+  display: none;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-family: 'PT Mono', monospace;
+  font-size: 22px;
+  color: #0F0F0F;
+  cursor: pointer;
+}
+.gallery-nav:hover { opacity: 0.5; }
+.gallery-nav.show { display: flex; }
+
+.gallery-dots {
+  display: none;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.gallery-dots.show { display: flex; }
+.gallery-dot {
+  font-family: 'PT Mono', monospace;
+  font-size: 14px;
+  background: none;
+  border: none;
+  color: #0F0F0F;
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.35;
+}
+.gallery-dot.active { opacity: 1; }
+
+/* Fullscreen photo view carousel controls (same vocabulary as the card) */
+.photo-nav {
+  display: none;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 15%;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-family: 'PT Mono', monospace;
+  font-size: 32px;
+  color: #F5F3EF;
+  cursor: pointer;
+  z-index: 210;
+}
+.photo-nav.show { display: flex; }
+#photo-prev { left: 0; }
+#photo-next { right: 0; }
+.photo-dots {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  left: 0;
+  right: 0;
+  justify-content: center;
+  gap: 10px;
+  z-index: 210;
+}
+.photo-dots.show { display: flex; }
+.photo-dot {
+  font-family: 'PT Mono', monospace;
+  font-size: 16px;
+  background: none;
+  border: none;
+  color: #F5F3EF;
+  cursor: pointer;
+  opacity: 0.4;
+}
+.photo-dot.active { opacity: 1; }
+
+#overlay-card .ov-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 22px;
+  line-height: 30px;
+  text-align: left;
+  margin-bottom: 14px;
+  word-break: break-word;
+}
+#overlay-card .ov-meta { font-family: 'PT Mono', monospace; font-size: 16px; line-height: 16px; color: #5a5a55; margin-bottom: 18px; margin-top: 8px; }
+#overlay-card .ov-desc { font-family: 'PT Mono', monospace; font-size: 16px; line-height: 20px; text-align: left; }
+#overlay-card .ov-video { display: none; font-family: 'PT Mono', monospace; font-size: 13px; color: #8a8a82; margin-top: 14px; border: 1px dashed #b8b4ac; padding: 10px; text-align: left; }
+#overlay-hint { color: #F5F3EF; font-family: 'PT Mono', monospace; font-size: 12px; opacity: 0.6; margin-top: 14px; }
+
+#overlay-card button:not(.gallery-nav):not(.gallery-dot) {
+  font-family: 'PT Mono', monospace;
+  font-size: 14px;
+  background: none;
+  border: 1px solid #0F0F0F;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+#overlay-card button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+#photoOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 200;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+#photoOverlay.open { display: block; opacity: 1; }

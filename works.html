@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuntematon — Works</title>
+<meta name="description" content="Full archive of works by the anonymous artist Tuntematon, filterable by medium.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="theme-light">
+
+<a class="back" href="index.html">&larr; HOME</a>
+<h1 class="grid-page-title">WORKS</h1>
+
+<div class="filters" id="filters"></div>
+<div id="works-grid"></div>
+
+<div id="overlay">
+  <div id="overlay-inner">
+    <div id="overlay-card">
+      <div class="photo-row">
+        <button class="gallery-nav" id="gallery-prev" aria-label="Previous photo">&lsaquo;</button>
+        <div class="ov-photo" id="ov-photo"></div>
+        <button class="gallery-nav" id="gallery-next" aria-label="Next photo">&rsaquo;</button>
+      </div>
+      <div class="gallery-dots" id="gallery-dots"></div>
+      <div class="ov-title" id="ov-title"></div>
+      <div class="ov-meta" id="ov-meta"></div>
+      <div class="ov-desc" id="ov-desc"></div>
+      <div class="ov-video" id="ov-video"></div>
+    </div>
+    <div id="overlay-hint">Tap anywhere except the photo to close</div>
+  </div>
+</div>
+
+<div id="photoOverlay">
+  <button class="photo-nav" id="photo-prev" aria-label="Previous photo">&lsaquo;</button>
+  <button class="photo-nav" id="photo-next" aria-label="Next photo">&rsaquo;</button>
+  <div class="photo-dots" id="photo-dots"></div>
+</div>
+
+<script src="js/data/works.js"></script>
+<script src="js/common.js"></script>
+<script src="js/works.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "tuntematon-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static portfolio site for the artist Tuntematon. Plain HTML/CSS/JS — no build step, no dependencies required to run.",
+  "scripts": {
+    "start": "npx serve ."
+  }
+}
