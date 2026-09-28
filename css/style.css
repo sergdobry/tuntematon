@@ -174,13 +174,6 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
   grid-auto-rows: 240px;
   gap: 0;
 }
-@media (max-width: 480px) {
-  #home-grid, #works-grid, #shop-grid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: unset;
-  }
-  .cell { width: auto; height: auto; aspect-ratio: 1; }
-}
 
 .cell {
   width: 240px;
@@ -201,6 +194,26 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
   background-position: center;
 }
 .cell:hover { filter: brightness(1.06); }
+
+/* Mobile: forced 2 columns, each module = half the screen width.
+   MUST stay below the base `.cell` rule above — same selector
+   specificity, so whichever comes later in the file wins. (This was
+   previously declared above `.cell` and silently lost, leaving cells
+   at a fixed 240px and cutting off the right column on real phones.)
+   `min-width: 0` lets grid items shrink below their content's natural
+   width instead of forcing the column wider than the screen. */
+@media (max-width: 480px) {
+  #home-grid, #works-grid, #shop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: unset;
+  }
+  .cell {
+    width: auto;
+    height: auto;
+    min-width: 0;
+    aspect-ratio: 1;
+  }
+}
 
 /* Puzzle drag prototype (js/puzzle.js) needs to own touch gestures on
    these cells instead of the browser's default scroll/zoom handling —

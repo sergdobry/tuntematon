@@ -16,12 +16,16 @@ travel with this handoff — check the repo root for them.
 
 - **Home (`index.html`)** is not a landing page — it's a grid of square
   modules, edge-to-edge, no gaps. Eight are fixed navigation modules
-  (Works, About, Manifesto, Exhibitions, Blog, Shop, Contact, Legal);
-  eight more are individual works, randomly selected from the pool on
-  every load. Position and (for nav modules) background color reshuffle
-  on every page load — the site is meant to look different every time
-  you open it, while critical navigation stays findable (fixed labels,
-  fixed set of nav items, alternating info/work layout).
+  (Works, About, Manifesto, Exhibitions, Blog, Shop, Contact, Legal),
+  alternating with 8 "featured" work-modules (randomly picked, half from
+  recently added works, half from the rest — see `js/home.js`,
+  `pickWorks()`). Below that top section, **every other work in the
+  pool** appears too, in random order — the feed simply gets longer as
+  more works are added, it never caps at 8. Position and (for nav
+  modules) background color reshuffle on every page load — the site is
+  meant to look different every time you open it, while critical
+  navigation stays findable (fixed labels, fixed set of nav items,
+  alternating info/work layout in the top section).
 - **A work has no separate detail page.** Clicking a work module opens a
   pop-up — that pop-up *is* the work's entire presentation (title, year,
   medium, status, description, photo(s)). This applies both on Home and
