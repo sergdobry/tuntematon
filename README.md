@@ -70,6 +70,8 @@ js/
                           js/data/works.js)
   works.js                 Works page: filter + grid render logic (data
                           comes from js/data/works.js)
+  puzzle.js                 Home grid drag-to-swap prototype — see
+                             "Puzzle drag" below
   shop.js                   Shop page: placeholder catalogue + its own
                              simple pop-up (does not use WorkPopup)
 
@@ -99,6 +101,42 @@ Currently only **Interim Inspection Report No. 0126—12/1702** has a
 Wiring up more galleries is just a data change in `js/data/works.js`
 (add a `gallery` array, drop images in
 `assets/images/works/<slug>/`) — no new code needed.
+
+### Puzzle drag (Home grid, prototype)
+
+`js/puzzle.js` lets the visitor pick up any module and drop it onto
+another to swap their positions — a free-swap version of a sliding
+puzzle (no empty slot; two tiles just trade places). It's independent
+of `home.js`: it attaches with event delegation to `#home-grid`, so it
+keeps working across every reshuffle without needing to be
+re-initialized, and layout changes are **not persisted** — reloading
+the page reshuffles as normal, by design.
+
+**Mouse and touch behave differently on purpose:**
+- Mouse/pen: a drag starts as soon as the pointer moves a few pixels.
+- Touch: a drag only starts after the finger is held still for about
+  600ms (a "long press"). A quick touch-and-swipe scrolls the page
+  normally instead.
+
+This isn't just UX polish — it's the fix for a real bug an earlier
+version of this file had. `touch-action` (the CSS property that tells
+the browser whether it may scroll on touch) is fixed for an entire
+touch gesture the moment it begins; it can't be toggled mid-gesture and
+have the browser honor the change. Setting `touch-action: none` on the
+cells (the first attempt) fixed dragging but made the grid impossible
+to scroll on a phone at all, since the modules fill the whole screen —
+there's no "empty" space left to scroll from. The long press works
+around this: `touch-action` is left at its default (scrolling allowed),
+and the code only calls `preventDefault()` on pointer-move events after
+confirming — via the held-still timer — that this particular touch is
+a drag, not a scroll. See the comment above `activateDrag()` in
+`js/puzzle.js` for the full mechanics. If you're tempted to "simplify"
+this by disabling touch-action again, don't — it'll silently break
+scrolling on mobile.
+
+Prototype scope: Home grid only. Porting to the Works archive
+(`js/works.js`'s `#works-grid`) is a matter of calling `init('works-grid')`
+too — nothing else about `puzzle.js` is Home-specific.
 
 ### Info-module vs. work-module rendering
 

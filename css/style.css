@@ -215,12 +215,15 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
   }
 }
 
-/* Puzzle drag prototype (js/puzzle.js) needs to own touch gestures on
-   these cells instead of the browser's default scroll/zoom handling —
-   scoped to Home only, where the prototype currently lives. */
-#home-grid .cell { touch-action: none; }
-
-/* Puzzle drag prototype (js/puzzle.js) — Home grid only for now */
+/* Puzzle drag prototype (js/puzzle.js) — Home grid only for now.
+   Deliberately NOT setting touch-action:none here — that would block
+   scrolling on every quick touch, which is exactly the bug the
+   long-press mechanism in puzzle.js was written to fix. Touch-action
+   stays at its default (scrolling allowed); puzzle.js only calls
+   preventDefault() on individual pointermove events, and only after a
+   long press has confirmed the touch is meant as a drag. See the long
+   comment above activateDrag() in that file for why this has to work
+   this way and can't be done with CSS alone. */
 .cell.puzzle-dragging {
   z-index: 20;
   cursor: grabbing;
