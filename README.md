@@ -118,21 +118,35 @@ the page reshuffles as normal, by design.
   600ms (a "long press"). A quick touch-and-swipe scrolls the page
   normally instead.
 
-This isn't just UX polish — it's the fix for a real bug an earlier
-version of this file had. `touch-action` (the CSS property that tells
+This isn't just UX polish — it's the fix for two real bugs earlier
+versions of this file had. `touch-action` (the CSS property that tells
 the browser whether it may scroll on touch) is fixed for an entire
 touch gesture the moment it begins; it can't be toggled mid-gesture and
-have the browser honor the change. Setting `touch-action: none` on the
-cells (the first attempt) fixed dragging but made the grid impossible
-to scroll on a phone at all, since the modules fill the whole screen —
-there's no "empty" space left to scroll from. The long press works
-around this: `touch-action` is left at its default (scrolling allowed),
-and the code only calls `preventDefault()` on pointer-move events after
-confirming — via the held-still timer — that this particular touch is
-a drag, not a scroll. See the comment above `activateDrag()` in
-`js/puzzle.js` for the full mechanics. If you're tempted to "simplify"
-this by disabling touch-action again, don't — it'll silently break
-scrolling on mobile.
+have the browser honor the change.
+
+1. Setting `touch-action: none` on the cells (the first attempt) fixed
+   dragging but made the grid impossible to scroll on a phone at all,
+   since the modules fill the whole screen — there's no "empty" space
+   left to scroll from.
+2. Leaving `touch-action` at its permissive default (`auto`) fixed
+   scrolling but broke the drag itself: a long press would flicker on
+   for an instant and then silently get cancelled. `auto` gives the
+   browser license to eagerly claim an ambiguous, mostly-stationary
+   touch as a scroll candidate before the long-press timer and
+   `setPointerCapture()` get a chance to take over — once the browser's
+   compositor has claimed it, our `preventDefault()` loses that race.
+
+The fix that actually works: `touch-action: pan-y` — the narrowest
+grant that still lets the browser handle ordinary vertical scrolling
+itself, without handing it license over anything else. Combined with
+the held-still timer (so no scroll gesture can have started yet when we
+take over) and a touch-move cancel threshold generous enough to allow
+for natural hand tremor during a long press, this is what makes both
+quick scrolling and long-press dragging work on the same cells. See the
+comment above `activateDrag()` in `js/puzzle.js` for the full
+mechanics. If you're tempted to "simplify" this by changing
+touch-action back to `none` or `auto`, don't — both break one of the
+two gestures.
 
 Prototype scope: Home grid only. Porting to the Works archive
 (`js/works.js`'s `#works-grid`) is a matter of calling `init('works-grid')`
