@@ -118,35 +118,40 @@ the page reshuffles as normal, by design.
   600ms (a "long press"). A quick touch-and-swipe scrolls the page
   normally instead.
 
-This isn't just UX polish — it's the fix for two real bugs earlier
-versions of this file had. `touch-action` (the CSS property that tells
-the browser whether it may scroll on touch) is fixed for an entire
-touch gesture the moment it begins; it can't be toggled mid-gesture and
-have the browser honor the change.
+This isn't just UX polish — it's the fix for several real bugs earlier
+versions of this file had, all variations on the same root problem.
+`touch-action` (the CSS property that tells the browser whether it may
+scroll on touch) is fixed for an entire gesture the moment it begins
+and can't be toggled mid-gesture. Three things were tried, in order:
 
-1. Setting `touch-action: none` on the cells (the first attempt) fixed
-   dragging but made the grid impossible to scroll on a phone at all,
-   since the modules fill the whole screen — there's no "empty" space
-   left to scroll from.
-2. Leaving `touch-action` at its permissive default (`auto`) fixed
-   scrolling but broke the drag itself: a long press would flicker on
-   for an instant and then silently get cancelled. `auto` gives the
-   browser license to eagerly claim an ambiguous, mostly-stationary
-   touch as a scroll candidate before the long-press timer and
-   `setPointerCapture()` get a chance to take over — once the browser's
-   compositor has claimed it, our `preventDefault()` loses that race.
+1. `touch-action: none` — stops the browser from ever scrolling these
+   cells, which also broke ordinary scrolling, since the modules fill
+   the whole screen and there's nowhere else to swipe from.
+2. `touch-action: auto`, then `pan-y` — lets the browser scroll, which
+   fixed that, but broke the drag: a long press would flicker on for
+   an instant and then silently get cancelled. The problem is that
+   with either value, the browser's own compositor is *independently*
+   watching the same touch for scroll intent, on its own schedule —
+   sometimes it claims an ambiguous, mostly-stationary touch before our
+   long-press timer fires, sometimes seemingly after. There is no
+   reliable signal in JS for "the browser just took this touch away
+   from you"; a long press that depends on winning that race is exactly
+   as flaky as the race itself, independent of how the thresholds are
+   tuned.
 
-The fix that actually works: `touch-action: pan-y` — the narrowest
-grant that still lets the browser handle ordinary vertical scrolling
-itself, without handing it license over anything else. Combined with
-the held-still timer (so no scroll gesture can have started yet when we
-take over) and a touch-move cancel threshold generous enough to allow
-for natural hand tremor during a long press, this is what makes both
-quick scrolling and long-press dragging work on the same cells. See the
-comment above `activateDrag()` in `js/puzzle.js` for the full
-mechanics. If you're tempted to "simplify" this by changing
-touch-action back to `none` or `auto`, don't — both break one of the
-two gestures.
+**What actually works:** stop trying to win that race and remove it
+instead. Cells are back to `touch-action: none` — the browser is never
+offered the touch at all, so there's nothing for it to claim — and
+`js/puzzle.js` does the scrolling itself: while waiting to see if a
+touch is a long press, any real finger movement is read as "scroll"
+and applied by hand with `window.scrollBy()`, 1:1 with the finger, for
+as long as it moves. The trade-off is no native momentum/coasting once
+the finger lifts (scrolling just stops), which is a real but minor
+loss compared to a drag gesture that doesn't work at all. See the
+comment block at the top of `js/puzzle.js` for the full reasoning. If
+you're tempted to "simplify" this by handing scrolling back to the
+browser (`auto` or `pan-y`), don't, without reading that comment first
+— it's the thing that was tried twice already.
 
 Prototype scope: Home grid only. Porting to the Works archive
 (`js/works.js`'s `#works-grid`) is a matter of calling `init('works-grid')`
