@@ -254,6 +254,17 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
 /* Works archive uses a smaller title (denser browsing grid) */
 #works-grid .px-title { font-size: 20px; line-height: 24px; }
 
+/* Mobile: module titles 25% smaller (24px -> 18px; Works archive
+   20px -> 15px; line-height scaled by the same 25%, so the 1:1
+   size-to-leading ratio on Home stays intact). Must stay BELOW the
+   base .px-title rules above — same specificity, later rule wins.
+   A separate block from the grid media query higher up on purpose:
+   that one sits above these rules in the file and would lose. */
+@media (max-width: 480px) {
+  .px-title { font-size: 18px; line-height: 18px; }
+  #works-grid .px-title { font-size: 15px; line-height: 18px; }
+}
+
 #toolbar {
   position: fixed;
   top: 12px;
