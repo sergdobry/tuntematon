@@ -190,6 +190,7 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
   word-break: break-all;
   hyphens: none;
   user-select: none;
+  -webkit-user-select: none;
   background-size: cover;
   background-position: center;
   /* Completely opt these cells out of the browser's own touch

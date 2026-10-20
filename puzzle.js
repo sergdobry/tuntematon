@@ -48,8 +48,10 @@
 
 (function () {
   const MOUSE_DRAG_THRESHOLD = 6;   // px of movement before a mouse press counts as a drag
-  const TOUCH_INTENT_THRESHOLD = 12; // px of movement before a touch commits to "scroll" (if before the long press) — low-stakes now, see note above
+  const TOUCH_INTENT_THRESHOLD = 16; // px (straight-line distance, not x+y) of movement before a touch commits to "scroll" instead of waiting for the long press. Was 12 measured as |dx|+|dy|, which a slightly drifting held finger could cross.
   const LONG_PRESS_MS = 600;        // how long a touch must be held still before it becomes a drag
+  const LIFT_SCALE = 1.05;          // the lifted tile "pops" slightly so it's obvious the long press registered
+  const DEBUG = /[?&]debug\b/.test(location.search); // open index.html?debug=1 to see an on-screen event log
 
   let grid = null;
   let draggingCell = null;
@@ -62,12 +64,36 @@
   let scrolling = false;            // true once a touch has committed to manual scrolling instead of a drag
   let longPressTimer = null;
   let suppressNextClick = false;
+  let lastPointerType = 'mouse';    // survives after the gesture ends, so contextmenu/selectstart (which can fire late) can still tell it was a touch
+  let downAt = 0;                   // timestamp of the current pointerdown, for the debug log
+
+  /* On-screen event log for testing on a real phone, where there's no
+     console. Only exists when the page is opened with ?debug=1.
+     Answers "what did the browser actually do during the long press" —
+     in particular whether it fired pointercancel / contextmenu and
+     how many ms after the finger went down. */
+  let debugBox = null;
+  function dbg(msg) {
+    if (!DEBUG) return;
+    if (!debugBox) {
+      debugBox = document.createElement('pre');
+      debugBox.style.cssText = 'position:fixed;left:0;bottom:0;right:0;max-height:38vh;overflow:hidden;margin:0;padding:6px;background:rgba(0,0,0,0.85);color:#7CFC00;font:11px/14px monospace;z-index:99999;pointer-events:none;white-space:pre-wrap;';
+      document.body.appendChild(debugBox);
+    }
+    const t = downAt ? Math.round(performance.now() - downAt) : 0;
+    const lines = debugBox.textContent ? debugBox.textContent.split('\n') : [];
+    lines.push(String(t).padStart(4, ' ') + 'ms  ' + msg);
+    debugBox.textContent = lines.slice(-14).join('\n');
+  }
 
   function onPointerDown(e) {
+    lastPointerType = e.pointerType || 'mouse';
     const cell = e.target.closest('.cell');
     if (!cell || !grid.contains(cell)) return;
     if (e.button !== undefined && e.button !== 0) return; // primary button / single touch-pen contact only
 
+    downAt = performance.now();
+    dbg('pointerdown type=' + lastPointerType);
     draggingCell = cell;
     pointerId = e.pointerId;
     pointerType = e.pointerType || 'mouse';
@@ -98,6 +124,10 @@
     if (draggingCell !== cell || scrolling) return; // already scrolling, lifted, or cancelled
     dragActive = true;
     cell.classList.add('puzzle-dragging');
+    cell.style.transform = `scale(${LIFT_SCALE})`;
+    // Short buzz where supported (Android): confirms the long press registered.
+    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (err) { /* ignore */ } }
+    dbg('LONG PRESS ACTIVATED (drag armed)');
   }
 
   function onPointerMove(e) {
@@ -107,7 +137,7 @@
 
     if (dragActive) {
       e.preventDefault();
-      draggingCell.style.transform = `translate(${dx}px, ${dy}px)`;
+      draggingCell.style.transform = `translate(${dx}px, ${dy}px) scale(${pointerType === 'touch' ? LIFT_SCALE : 1})`;
       updateDropTarget(e.clientX, e.clientY);
       return;
     }
@@ -119,7 +149,7 @@
         lastY = e.clientY;
         return;
       }
-      if (Math.abs(dx) + Math.abs(dy) > TOUCH_INTENT_THRESHOLD) {
+      if (Math.hypot(dx, dy) > TOUCH_INTENT_THRESHOLD) {
         // Commits to "this is a scroll, not a hold" — cancel the
         // pending long press and start moving the page ourselves.
         // (touch-action: none means the browser never saw this as a
@@ -127,6 +157,7 @@
         // over.)
         clearTimeout(longPressTimer);
         scrolling = true;
+        dbg('moved ' + Math.round(Math.hypot(dx, dy)) + 'px before long press -> SCROLL mode');
         e.preventDefault();
         window.scrollBy(0, lastY - e.clientY);
         lastY = e.clientY;
@@ -166,6 +197,7 @@
     clearTimeout(longPressTimer);
     const wasDragging = dragActive;
     const target = dropTarget;
+    dbg('pointerup dragActive=' + wasDragging + ' scrolling=' + scrolling + ' target=' + !!target);
 
     cleanupDragVisuals();
 
@@ -184,6 +216,7 @@
   function onPointerCancel(e) {
     if (e.pointerId !== pointerId) return;
     clearTimeout(longPressTimer);
+    dbg('POINTERCANCEL - browser took the touch away (dragActive=' + dragActive + ')');
     cleanupDragVisuals();
     teardownPointerListeners();
   }
@@ -232,6 +265,21 @@
     // Capture phase: must run before home.js's own click handler (bound
     // directly on each cell) gets a chance to fire.
     grid.addEventListener('click', onClickCapture, true);
+
+    /* Android Chrome treats a ~500ms press as a "long press" of its own:
+       it fires `contextmenu` and may cancel the pointer sequence
+       (pointercancel), which is shorter than our LONG_PRESS_MS and so
+       kills the drag before it can arm. iOS has the equivalent callout
+       and text-selection handles. Suppress all of that, but only for
+       touch — a desktop right-click menu on a tile is harmless. */
+    grid.addEventListener('contextmenu', (e) => {
+      dbg('contextmenu event (touch=' + (lastPointerType === 'touch') + ')');
+      if (lastPointerType === 'touch') e.preventDefault();
+    });
+    grid.addEventListener('selectstart', (e) => {
+      if (lastPointerType === 'touch') e.preventDefault();
+    });
+    grid.addEventListener('dragstart', (e) => e.preventDefault());
   }
 
   document.addEventListener('DOMContentLoaded', () => init('home-grid'));

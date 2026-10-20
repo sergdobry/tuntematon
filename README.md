@@ -148,7 +148,17 @@ and applied by hand with `window.scrollBy()`, 1:1 with the finger, for
 as long as it moves. The trade-off is no native momentum/coasting once
 the finger lifts (scrolling just stops), which is a real but minor
 loss compared to a drag gesture that doesn't work at all. See the
-comment block at the top of `js/puzzle.js` for the full reasoning. If
+comment block at the top of `js/puzzle.js` for the full reasoning. **Long-press fights with the OS's own long press.** Android Chrome
+treats a ~500ms press as its own long press: it fires a `contextmenu`
+event and can cancel the pointer sequence (`pointercancel`) — earlier
+than our 600ms timer, so the drag never arms. `puzzle.js` now calls
+`preventDefault()` on `contextmenu` / `selectstart` for touch input.
+If the drag still fails on a device, open `index.html?debug=1` — an
+on-screen log shows every pointerdown / activation / pointercancel /
+contextmenu with its timestamp in ms, which says exactly what the
+browser did and when.
+
+If
 you're tempted to "simplify" this by handing scrolling back to the
 browser (`auto` or `pan-y`), don't, without reading that comment first
 — it's the thing that was tried twice already.
