@@ -51,7 +51,12 @@
   const TOUCH_INTENT_THRESHOLD = 16; // px (straight-line distance, not x+y) of movement before a touch commits to "scroll" instead of waiting for the long press. Was 12 measured as |dx|+|dy|, which a slightly drifting held finger could cross.
   const LONG_PRESS_MS = 600;        // how long a touch must be held still before it becomes a drag
   const LIFT_SCALE = 1.05;          // the lifted tile "pops" slightly so it's obvious the long press registered
-  const DEBUG = /[?&]debug\b/.test(location.search); // open index.html?debug=1 to see an on-screen event log
+  const VERSION = 'v4-contextmenu-fix';
+  // On-screen event log. Turned on by ANY of: index-debug.html (sets
+  // window.PUZZLE_DEBUG), ?debug in the URL, or #debug in the URL.
+  // The separate index-debug.html exists because mobile file managers
+  // often drop the ?query part of a file:// address.
+  const DEBUG = window.PUZZLE_DEBUG === true || /[?&]debug\b/.test(location.search) || location.hash === '#debug';
 
   let grid = null;
   let draggingCell = null;
@@ -260,6 +265,14 @@
 
   function init(gridId) {
     grid = document.getElementById(gridId);
+    if (DEBUG) {
+      dbg('DEBUG ON - puzzle.js ' + VERSION + ' | grid found: ' + !!grid + ' | PointerEvent: ' + (typeof window.PointerEvent));
+      // Global probes: do pointer/touch events reach the page at all,
+      // and does anything cancel them?
+      document.addEventListener('pointerdown', (e) => dbg('doc pointerdown <' + e.target.tagName.toLowerCase() + (e.target.className ? '.' + String(e.target.className).split(' ')[0] : '') + '> ' + e.pointerType), true);
+      document.addEventListener('pointercancel', (e) => dbg('doc pointercancel ' + e.pointerType), true);
+      document.addEventListener('touchcancel', () => dbg('doc touchcancel'), true);
+    }
     if (!grid) return;
     grid.addEventListener('pointerdown', onPointerDown);
     // Capture phase: must run before home.js's own click handler (bound
