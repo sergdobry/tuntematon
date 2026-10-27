@@ -51,7 +51,7 @@
   const TOUCH_INTENT_THRESHOLD = 16; // px (straight-line distance, not x+y) of movement before a touch commits to "scroll" instead of waiting for the long press. Was 12 measured as |dx|+|dy|, which a slightly drifting held finger could cross.
   const LONG_PRESS_MS = 600;        // how long a touch must be held still before it becomes a drag
   const LIFT_SCALE = 1.05;          // the lifted tile "pops" slightly so it's obvious the long press registered
-  const VERSION = 'v4-contextmenu-fix';
+  const VERSION = 'v5-touchstart-block';
   // On-screen event log. Turned on by ANY of: index-debug.html (sets
   // window.PUZZLE_DEBUG), ?debug in the URL, or #debug in the URL.
   // The separate index-debug.html exists because mobile file managers
@@ -71,6 +71,8 @@
   let suppressNextClick = false;
   let lastPointerType = 'mouse';    // survives after the gesture ends, so contextmenu/selectstart (which can fire late) can still tell it was a touch
   let downAt = 0;                   // timestamp of the current pointerdown, for the debug log
+  let movesSinceArm = 0;            // pointermoves seen after the drag armed (debug only)
+  let selectedCell = null;          // fallback "picked up" tile: tap another tile to swap (see onPointerCancel)
 
   /* On-screen event log for testing on a real phone, where there's no
      console. Only exists when the page is opened with ?debug=1.
@@ -98,6 +100,7 @@
     if (e.button !== undefined && e.button !== 0) return; // primary button / single touch-pen contact only
 
     downAt = performance.now();
+    movesSinceArm = 0;
     dbg('pointerdown type=' + lastPointerType);
     draggingCell = cell;
     pointerId = e.pointerId;
@@ -142,6 +145,7 @@
 
     if (dragActive) {
       e.preventDefault();
+      movesSinceArm++;
       draggingCell.style.transform = `translate(${dx}px, ${dy}px) scale(${pointerType === 'touch' ? LIFT_SCALE : 1})`;
       updateDropTarget(e.clientX, e.clientY);
       return;
@@ -204,10 +208,15 @@
     const target = dropTarget;
     dbg('pointerup dragActive=' + wasDragging + ' scrolling=' + scrolling + ' target=' + !!target);
 
+    const cell = draggingCell;
+    const wasScrolling = scrolling;
+    const heldMs = performance.now() - downAt;
+
     cleanupDragVisuals();
 
     if (wasDragging) {
-      if (target) swapCells(draggingCell, target);
+      if (target) swapCells(cell, target);
+      clearSelection();
       // The browser fires a synthetic 'click' right after pointerup —
       // swallow exactly that one so a drag doesn't also open the
       // pop-up / navigate.
@@ -216,14 +225,54 @@
     }
 
     teardownPointerListeners();
+
+    // Touch tap (no drag, no scroll). We block touchstart's default (see
+    // init), which also suppresses the browser's own synthetic click, so
+    // taps are re-created here by hand.
+    if (pointerType === 'touch' && !wasDragging && !wasScrolling && heldMs < LONG_PRESS_MS) {
+      if (selectedCell && selectedCell !== cell) {
+        // A tile was picked up earlier (drag was cancelled by the
+        // browser) — this tap is the "drop here" half of the fallback.
+        dbg('tap on another tile -> swap with selected');
+        const picked = selectedCell;
+        clearSelection();
+        swapCells(picked, cell);
+      } else if (selectedCell === cell) {
+        dbg('tap on selected tile -> deselect');
+        clearSelection();
+      } else {
+        dbg('tap -> click()');
+        cell.click();
+      }
+    }
   }
 
   function onPointerCancel(e) {
     if (e.pointerId !== pointerId) return;
     clearTimeout(longPressTimer);
-    dbg('POINTERCANCEL - browser took the touch away (dragActive=' + dragActive + ')');
+    dbg('POINTERCANCEL - browser took the touch away (dragActive=' + dragActive + ', moves since arm=' + movesSinceArm + ')');
+    const cell = draggingCell;
+    const wasArmed = dragActive && pointerType === 'touch';
     cleanupDragVisuals();
     teardownPointerListeners();
+    if (wasArmed && cell) {
+      // The long press registered but the browser cancelled the gesture
+      // before the finger could drag. Don't lose it: leave the tile
+      // visibly picked up and let the next tap on another tile finish
+      // the swap.
+      clearSelection();
+      selectedCell = cell;
+      cell.classList.add('puzzle-dragging');
+      cell.style.transform = `scale(${LIFT_SCALE})`;
+      dbg('SELECTED - tap another tile to swap with it');
+    }
+  }
+
+  function clearSelection() {
+    if (!selectedCell) return;
+    selectedCell.classList.remove('puzzle-dragging');
+    selectedCell.style.transform = '';
+    selectedCell = null;
   }
 
   function cleanupDragVisuals() {
@@ -293,6 +342,21 @@
       if (lastPointerType === 'touch') e.preventDefault();
     });
     grid.addEventListener('dragstart', (e) => e.preventDefault());
+
+    /* The key one. Cancelling touchstart tells the browser this touch is
+       entirely ours: it then generates NO gestures for it — no long
+       press, no context menu / selection handling, no native scroll, no
+       synthetic click. The pointercancel that kept ending the drag
+       ~140ms after the long press came from the browser's own gesture
+       recognizer; with touchstart cancelled, that recognizer never runs.
+       Cost: the synthetic click is gone too, so onPointerUp re-creates
+       taps by hand (cell.click()). Must be non-passive to be allowed to
+       call preventDefault. */
+    grid.addEventListener('touchstart', (e) => {
+      if (!e.target.closest('.cell')) return;
+      dbg('touchstart (default prevented)');
+      e.preventDefault();
+    }, { passive: false });
   }
 
   document.addEventListener('DOMContentLoaded', () => init('home-grid'));
