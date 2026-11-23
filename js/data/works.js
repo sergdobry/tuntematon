@@ -3,14 +3,14 @@
    work (Home grid + Works archive). Load this file before js/home.js,
    js/works.js, or js/common.js.
 
-   To add a new work: add one object to workPool below (with a unique
-   `tags` array for the Works filter) and drop its photo(s) in
+   To add a new work: add one object to the FRONT of workPool below
+   (with a `tags` array for the Works filter) and drop its photo(s) in
    assets/images/works/. Nothing else needs to change — both pages
    pick it up automatically. */
 
 const infoItems = [
   { "t": "Works", "type": "info", "desc": "Full archive of works, filterable by medium", "href": "works.html" },
-  { "t": "About", "type": "info", "desc": "Bio, awards, talks, credits", "href": "about.html" },
+  { "t": "About", "type": "info", "desc": "Bio, credits", "href": "about.html" },
   { "t": "Manifesto", "type": "info", "desc": "The artist's statement", "href": "manifesto.html" },
   { "t": "Exhibitions", "type": "info", "desc": "Exhibition history 2025–2026", "href": "exhibitions.html" },
   { "t": "Blog", "type": "info", "desc": "News, press, texts", "href": "blog.html" },
@@ -25,9 +25,7 @@ const infoItems = [
       to the FRONT of this array, not the end.
    2. Otherwise cosmetic — Works archive filtering doesn't care about
       order.
-   `tags` values (kept in one place here now) drive the medium filter
-   on works.html — see README.md, "Decisions made but not yet
-   re-validated", re: whether this taxonomy is final. */
+   `tags` values drive the medium filter on works.html. */
 const workPool = [
   {
     "t": "AUTOMATIC PORTRAIT",

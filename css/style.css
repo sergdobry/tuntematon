@@ -190,8 +190,21 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
   word-break: break-all;
   hyphens: none;
   user-select: none;
+  -webkit-user-select: none;
   background-size: cover;
   background-position: center;
+  /* Completely opt these cells out of the browser's own touch
+     handling. Two in-between attempts (`auto`, `pan-y`) both turned
+     into a race with the browser's compositor over who owns an
+     ambiguous touch, and that race was not reliably winnable from JS.
+     With `none`, the browser is never offered the touch at all — there
+     is nothing for it to claim — and js/puzzle.js does 100% of the
+     work itself: real scrolling via window.scrollBy() for a quick
+     swipe, drag-to-swap after a long press. See the long comment at
+     the top of puzzle.js for the full reasoning. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 .cell:hover { filter: brightness(1.06); }
 
@@ -216,14 +229,10 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
 }
 
 /* Puzzle drag prototype (js/puzzle.js) — Home grid only for now.
-   Deliberately NOT setting touch-action:none here — that would block
-   scrolling on every quick touch, which is exactly the bug the
-   long-press mechanism in puzzle.js was written to fix. Touch-action
-   stays at its default (scrolling allowed); puzzle.js only calls
-   preventDefault() on individual pointermove events, and only after a
-   long press has confirmed the touch is meant as a drag. See the long
-   comment above activateDrag() in that file for why this has to work
-   this way and can't be done with CSS alone. */
+   Visual states for the tile being dragged and the tile it's hovering
+   over. Note that `.cell` itself uses `touch-action: none` (see above):
+   puzzle.js handles touch scrolling by hand, so the browser is never
+   offered the gesture. See the comment block at the top of puzzle.js. */
 .cell.puzzle-dragging {
   z-index: 20;
   cursor: grabbing;
@@ -245,6 +254,17 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
 }
 /* Works archive uses a smaller title (denser browsing grid) */
 #works-grid .px-title { font-size: 20px; line-height: 24px; }
+
+/* Mobile: module titles 25% smaller (24px -> 18px; Works archive
+   20px -> 15px; line-height scaled by the same 25%, so the 1:1
+   size-to-leading ratio on Home stays intact). Must stay BELOW the
+   base .px-title rules above — same specificity, later rule wins.
+   A separate block from the grid media query higher up on purpose:
+   that one sits above these rules in the file and would lose. */
+@media (max-width: 480px) {
+  .px-title { font-size: 18px; line-height: 18px; }
+  #works-grid .px-title { font-size: 15px; line-height: 18px; }
+}
 
 #toolbar {
   position: fixed;

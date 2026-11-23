@@ -115,7 +115,7 @@ the page reshuffles as normal, by design.
 **Mouse and touch behave differently on purpose:**
 - Mouse/pen: a drag starts as soon as the pointer moves a few pixels.
 - Touch: a drag only starts after the finger is held still for about
-  600ms (a "long press"). A quick touch-and-swipe scrolls the page
+  500ms (a "long press"). A quick touch-and-swipe scrolls the page
   normally instead.
 
 This isn't just UX polish — it's the fix for several real bugs earlier
@@ -148,15 +148,21 @@ and applied by hand with `window.scrollBy()`, 1:1 with the finger, for
 as long as it moves. The trade-off is no native momentum/coasting once
 the finger lifts (scrolling just stops), which is a real but minor
 loss compared to a drag gesture that doesn't work at all. See the
-comment block at the top of `js/puzzle.js` for the full reasoning. **Long-press fights with the OS's own long press.** Android Chrome
-treats a ~500ms press as its own long press: it fires a `contextmenu`
-event and can cancel the pointer sequence (`pointercancel`) — earlier
-than our 600ms timer, so the drag never arms. `puzzle.js` now calls
-`preventDefault()` on `contextmenu` / `selectstart` for touch input.
-If the drag still fails on a device, open `index.html?debug=1` — an
-on-screen log shows every pointerdown / activation / pointercancel /
-contextmenu with its timestamp in ms, which says exactly what the
-browser did and when.
+comment block at the top of `js/puzzle.js` for the full reasoning. **Long-press fights with the OS's own gesture recognizer.** Measured on
+a real phone with the debug log: Android Chrome fires `contextmenu` at
+~590ms, our long press armed at ~600ms, and ~140ms later the browser
+sends `pointercancel` and the drag dies. Suppressing `contextmenu` /
+`selectstart` was not enough. What stops it is cancelling `touchstart`
+on the cells (non-passive listener in `init()`): that tells the browser
+the touch is entirely ours, so its gesture recognizer (long press,
+context menu, native scroll, synthetic click) never runs for it. Since
+the synthetic click disappears too, taps are re-created by hand
+(`cell.click()` in `onPointerUp`). As a safety net, if the browser still
+cancels an *armed* touch drag, the tile stays visibly picked up and the
+next tap on another tile completes the swap. The long press is 500ms
+(`LONG_PRESS_MS`). To see what a given device does, open
+`index-debug.html` — an on-screen event log with millisecond
+timestamps (the first line shows the puzzle.js version).
 
 If
 you're tempted to "simplify" this by handing scrolling back to the
