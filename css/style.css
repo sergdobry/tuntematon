@@ -248,22 +248,26 @@ body.theme-dark .placeholder-note { color: #6a6a66; border-color: #3a3a36; }
 
 .px-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 24px;
-  line-height: 24px;
+  font-size: 19.2px;
+  line-height: 19.2px;
   width: 100%;
 }
 /* Works archive uses a smaller title (denser browsing grid) */
-#works-grid .px-title { font-size: 20px; line-height: 24px; }
+#works-grid .px-title { font-size: 16px; line-height: 19.2px; }
 
-/* Mobile: module titles 25% smaller (24px -> 18px; Works archive
-   20px -> 15px; line-height scaled by the same 25%, so the 1:1
-   size-to-leading ratio on Home stays intact). Must stay BELOW the
+/* Module titles were cut a further 20% (24px -> 19.2px; Works archive
+   20px -> 16px). Mobile below is likewise 20% smaller than before
+   (18px -> 14.4px; Works 15px -> 12px) — line-height scaled by the same
+   amount so the 1:1 size-to-leading ratio on Home stays intact. Note:
+   Press Start 2P is drawn on an 8px grid, so it is crispest at
+   multiples of 8 (16, 24...); 19.2 / 14.4 land between grid steps and
+   may look very slightly soft. Must stay BELOW the
    base .px-title rules above — same specificity, later rule wins.
    A separate block from the grid media query higher up on purpose:
    that one sits above these rules in the file and would lose. */
 @media (max-width: 480px) {
-  .px-title { font-size: 18px; line-height: 18px; }
-  #works-grid .px-title { font-size: 15px; line-height: 18px; }
+  .px-title { font-size: 14.4px; line-height: 14.4px; }
+  #works-grid .px-title { font-size: 12px; line-height: 14.4px; }
 }
 
 #toolbar {
