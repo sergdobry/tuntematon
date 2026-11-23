@@ -115,7 +115,7 @@ the page reshuffles as normal, by design.
 **Mouse and touch behave differently on purpose:**
 - Mouse/pen: a drag starts as soon as the pointer moves a few pixels.
 - Touch: a drag only starts after the finger is held still for about
-  500ms (a "long press"). A quick touch-and-swipe scrolls the page
+  400ms (a "long press"). A quick touch-and-swipe scrolls the page
   normally instead.
 
 This isn't just UX polish — it's the fix for several real bugs earlier
@@ -159,7 +159,7 @@ context menu, native scroll, synthetic click) never runs for it. Since
 the synthetic click disappears too, taps are re-created by hand
 (`cell.click()` in `onPointerUp`). As a safety net, if the browser still
 cancels an *armed* touch drag, the tile stays visibly picked up and the
-next tap on another tile completes the swap. The long press is 500ms
+next tap on another tile completes the swap. The long press is 400ms
 (`LONG_PRESS_MS`). To see what a given device does, open
 `index-debug.html` — an on-screen event log with millisecond
 timestamps (the first line shows the puzzle.js version).
