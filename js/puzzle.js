@@ -6,7 +6,7 @@
 
    - Mouse/pen: drag starts as soon as the pointer moves past a small
      threshold. There's no scroll gesture to protect on desktop.
-   - Touch: dragging only starts after a LONG PRESS (~400ms) with the
+   - Touch: dragging only starts after a LONG PRESS (~300ms) with the
      finger held still. A normal quick touch-and-move scrolls the page
      instead — see "Why scrolling is done manually" below for why that
      scroll is implemented by hand in this file, not left to the browser.
@@ -49,9 +49,9 @@
 (function () {
   const MOUSE_DRAG_THRESHOLD = 6;   // px of movement before a mouse press counts as a drag
   const TOUCH_INTENT_THRESHOLD = 16; // px (straight-line distance, not x+y) of movement before a touch commits to "scroll" instead of waiting for the long press. Was 12 measured as |dx|+|dy|, which a slightly drifting held finger could cross.
-  const LONG_PRESS_MS = 400;        // how long a touch must be held still before it becomes a drag
+  const LONG_PRESS_MS = 300;        // how long a touch must be held still before it becomes a drag
   const LIFT_SCALE = 1.05;          // the lifted tile "pops" slightly so it's obvious the long press registered
-  const VERSION = 'v7-long-press-400ms';
+  const VERSION = 'v8-long-press-300ms';
   // On-screen event log. Turned on by ANY of: index-debug.html (sets
   // window.PUZZLE_DEBUG), ?debug in the URL, or #debug in the URL.
   // The separate index-debug.html exists because mobile file managers
